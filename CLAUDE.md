@@ -44,3 +44,30 @@ When converting this back to a true template, verify:
 - `resources/*.yml` — job and serving endpoint resource definitions
 - `evals/thresholds.yaml` — cost and quality gate floors
 - `notebooks/` — the 8-phase teaching curriculum
+
+## CI/CD (mirrors the agent-eval repo's split)
+Three workflows in `.github/workflows/`, same philosophy as
+`~/Projects/Python/agent-eval`: hermetic checks auto-run; anything that spends
+money is **manual dispatch only**.
+
+| Workflow | Trigger | Needs secrets? | What it does |
+|---|---|---|---|
+| `validate.yml` | every PR + manual | no | ruff lint/format, offline pytest, `bundle validate` (schema only, fake host) |
+| `secret-scan.yml` | every PR/push + manual | no | gitleaks over full history |
+| `deploy.yml` | **manual dispatch only** | yes | `bundle deploy` + optionally `bundle run` the eval gate (spends real compute + judge tokens) |
+
+### Driving CI/CD from Claude mobile
+Everything is triggered through `gh`, so any Claude session (mobile included)
+can run full CI/CD without a local checkout:
+
+```bash
+gh workflow run deploy.yml -f run_eval_gate=true   # deploy + eval gate
+gh run list --workflow=deploy.yml --limit 3         # check status
+gh run watch                                        # tail a run
+gh run view <id> --log-failed                       # debug a failure
+```
+
+Repo secrets required (set once): `DATABRICKS_HOST`, `DATABRICKS_TOKEN`
+(service principal token; prefer OIDC federation long-term). The `deploy.yml`
+job uses the `production` GitHub environment — add a required-reviewer rule
+there if you want an approval tap before money is spent.
