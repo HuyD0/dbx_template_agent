@@ -1,0 +1,10 @@
+{"inputs": {"question": "What is 17 * 43 + 5?"}, "expectations": {"expected_response": "736", "expected_tool": "calculator"}}
+{"inputs": {"question": "Compute (128 - 32) / 4"}, "expectations": {"expected_response": "24", "expected_tool": "calculator"}}
+{"inputs": {"question": "What is 2 to the power of 10?"}, "expectations": {"expected_response": "1024", "expected_tool": "calculator"}}
+{"inputs": {"question": "What is an MLflow trace?"}, "expectations": {"expected_response": "An MLflow trace records one request through the agent as a tree of spans (AGENT, TOOL, CHAT_MODEL) with inputs, outputs, timing, and attributes like token usage.", "expected_tool": "lookup"}}
+{"inputs": {"question": "Define 'LLM judge' for me."}, "expectations": {"expected_response": "An LLM judge is a model prompted to score another model's output against criteria; it must be validated against human labels before gating anything.", "expected_tool": "lookup"}}
+{"inputs": {"question": "What does champion/challenger mean?"}, "expectations": {"expected_response": "Champion/challenger compares the incumbent against a candidate on the same eval set and promotes the candidate only if it does not regress; aliases point downstream code at the winner.", "expected_tool": "lookup"}}
+{"inputs": {"question": "What is a Databricks Asset Bundle?"}, "expectations": {"expected_response": "A Databricks Asset Bundle describes workspace resources like jobs and models as versioned YAML deployed with `databricks bundle deploy`.", "expected_tool": "lookup"}}
+{"inputs": {"question": "If I run 250 evals at $0.004 each, what does it cost?"}, "expectations": {"expected_response": "$1.00", "expected_tool": "calculator"}}
+{"inputs": {"question": "Say hello."}, "expectations": {"expected_response": "A short greeting, with no tool calls.", "expected_tool": null}}
+{"inputs": {"question": "What's the capital of France?"}, "expectations": {"expected_response": "Paris", "expected_tool": null}}

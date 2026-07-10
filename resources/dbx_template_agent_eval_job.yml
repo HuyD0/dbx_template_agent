@@ -1,0 +1,34 @@
+# The eval gate as a Databricks Job (the "productionized" path for notebook 06).
+#
+# Run it manually — never wire it to an automatic trigger without thinking:
+#   databricks bundle deploy
+#   databricks bundle run dbx_template_agent_eval_gate
+#
+# It exits non-zero when a threshold floor (quality or cost) is breached, so a
+# CI system dispatching it can gate a promotion on the result.
+resources:
+  jobs:
+    dbx_template_agent_eval_gate:
+      name: dbx_template_agent-eval-gate
+
+      tasks:
+        - task_key: eval_gate
+          spark_python_task:
+            python_file: ../evals/run_agent_eval.py
+          environment_key: default
+
+      environments:
+        - environment_key: default
+          spec:
+            client: "2"
+            dependencies:
+              - mlflow>=3.14.0
+              - databricks-sdk>=0.38.0
+              - pandas>=2.0
+              - pyyaml>=6.0
+              - openai>=1.40
+
+      # Email yourself when a gate run fails (edit or remove):
+      # email_notifications:
+      #   on_failure:
+      #     - ${workspace.current_user.userName}

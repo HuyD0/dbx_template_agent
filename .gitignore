@@ -1,0 +1,11 @@
+# Local artifacts — never commit these.
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+mlruns/
+mlflow.db
+.databricks/
+.env
+dist/

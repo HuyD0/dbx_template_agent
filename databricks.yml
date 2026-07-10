@@ -1,0 +1,50 @@
+# This is the Databricks Asset Bundle definition for dbx_template_agent.
+# Everything below was filled in from your `databricks bundle init` answers —
+# nothing needs hand-editing to get started.
+#
+# Docs: https://docs.databricks.com/dev-tools/bundles/index.html
+bundle:
+  name: dbx_template_agent
+
+include:
+  - resources/*.yml
+
+variables:
+  catalog:
+    description: Unity Catalog catalog (pre-created; bundles cannot create catalogs)
+    default: main
+  schema:
+    description: UC schema for this project's prompts, models, and eval datasets
+    default: dbx_template_agent
+  chat_endpoint:
+    description: Serving endpoint for the agent (the system under test)
+    default: databricks-claude-sonnet-4-5
+  judge_endpoint:
+    description: Serving endpoint for the LLM judge (different family than the agent)
+    default: databricks-gpt-5-mini
+  experiment_base:
+    description: MLflow experiment base path (one experiment per concern lives under it)
+    default: /Shared/dbx_template_agent
+  daily_budget_usd:
+    description: Daily LLM spend budget in USD (the eval gate fails closed against it)
+    default: "5"
+
+targets:
+  # Development target: resources are deployed with a per-user prefix so
+  # teammates never clobber each other's copies.
+  dev:
+    mode: development
+    default: true
+    workspace:
+      host: https://adb-7405609799238491.11.azuredatabricks.net
+
+  # When you're ready for a production target, uncomment and adapt:
+  # prod:
+  #   mode: production
+  #   workspace:
+  #     host: https://adb-7405609799238491.11.azuredatabricks.net
+  #     root_path: /Shared/.bundle/prod/${bundle.name}
+  #   run_as:
+  #     # Run production jobs as a service principal, not a person:
+  #     # service_principal_name: <application-id>
+  #     user_name: ${workspace.current_user.userName}

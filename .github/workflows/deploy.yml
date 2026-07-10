@@ -1,0 +1,50 @@
+# Deploy + (optionally) run the eval gate — MANUAL DISPATCH ONLY.
+#
+# This workflow spends real Databricks compute and judge tokens, so it never
+# auto-triggers from a push or PR. A human clicks "Run workflow" (or CI calls
+# it deliberately as a promotion step).
+#
+# Auth setup (once):
+#   Prefer keyless OIDC federation for your service principal
+#   (https://docs.databricks.com/dev-tools/auth/oauth-federation.html).
+#   Short of that, store a DATABRICKS_HOST + DATABRICKS_TOKEN as repo secrets —
+#   never commit credentials.
+name: deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_eval_gate:
+        description: "Also run the eval gate job after deploying"
+        type: boolean
+        default: true
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: databricks/setup-cli@main
+
+      - name: Bundle deploy
+        run: databricks bundle deploy
+        env:
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+
+      - name: Run eval gate
+        if: ${{ inputs.run_eval_gate }}
+        # The gate is the only job in this bundle; resolve its key from the
+        # bundle itself so this workflow needs no per-project editing.
+        run: |
+          JOB_KEY=$(databricks bundle summary -o json | jq -r '.resources.jobs | keys[0]')
+          databricks bundle run "$JOB_KEY"
+        env:
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}

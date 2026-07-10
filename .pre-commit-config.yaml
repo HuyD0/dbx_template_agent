@@ -1,0 +1,28 @@
+# Two-speed hooks: fast lint/format at commit, the test suite at pre-push —
+# so a broken commit never even reaches GitHub.
+#
+#   pre-commit install --hook-type pre-commit --hook-type pre-push
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.6.9
+    hooks:
+      - id: ruff
+        args: [--fix]
+      - id: ruff-format
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: check-yaml
+      - id: check-json
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+
+  - repo: local
+    hooks:
+      - id: pytest
+        name: pytest (offline unit tests)
+        entry: uv run pytest
+        language: system
+        pass_filenames: false
+        stages: [pre-push]

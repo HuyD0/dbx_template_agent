@@ -1,0 +1,22 @@
+# Gate floors: the eval run FAILS (non-zero exit) if any metric lands below
+# its floor, or any per-answer cost lands above the ceiling.
+#
+# These start deliberately loose so your first gate run passes and you can see
+# the machinery work end to end. Tighten them in phase 04 once you have a
+# baseline — a floor you've never measured against is a guess, not a gate.
+#
+# Metric keys match what mlflow.genai.evaluate logs: <scorer_name>/mean.
+floors:
+  correctness/mean: 0.6
+  relevance_to_query/mean: 0.6
+  tool_call_correct/mean: 0.6
+  format_ok/mean: 0.8
+
+cost:
+  # Per-answer ceiling enforced row-by-row by the cost_ok scorer,
+  # and as a floor on its pass rate here.
+  per_answer_usd: 0.05
+  cost_ok/mean: 0.8
+
+latency:
+  per_answer_ms: 30000

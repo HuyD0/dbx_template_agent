@@ -1,0 +1,21 @@
+# OPTIONAL: a Model Serving endpoint for your agent.
+#
+# This whole resource ships commented out on purpose: a serving endpoint needs a
+# registered model VERSION to exist first, and on a fresh project there isn't one
+# yet. Notebook 06 registers the agent into Unity Catalog as
+# ${var.catalog}.${var.schema}.dbx_template_agent_model and moves the @champion alias.
+# After that has happened at least once, uncomment below and `databricks bundle deploy`.
+#
+# Why alias, not version number: the alias always points at whatever last passed
+# the eval gate, so this file never needs editing when a new version is promoted.
+
+# resources:
+#   model_serving_endpoints:
+#     dbx_template_agent_endpoint:
+#       name: dbx_template_agent-agent
+#       config:
+#         served_entities:
+#           - entity_name: ${var.catalog}.${var.schema}.dbx_template_agent_model
+#             entity_version: "1"   # or manage via the @champion alias from notebook 06
+#             workload_size: Small
+#             scale_to_zero_enabled: true

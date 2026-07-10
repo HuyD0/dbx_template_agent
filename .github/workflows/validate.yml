@@ -1,0 +1,39 @@
+# Tier-1 validation: hermetic, runs on every PR, needs NO credentials.
+# Anything that talks to a workspace (deploy, the eval gate) is deliberately
+# NOT here — see deploy.yml (manual dispatch only).
+name: validate
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: validate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.12"
+
+      - name: Lint
+        run: |
+          uv run --group dev ruff check .
+          uv run --group dev ruff format --check .
+
+      - name: Offline unit tests
+        run: uv run --group dev pytest
+
+      - uses: databricks/setup-cli@main
+
+      - name: Bundle schema validation (no workspace call)
+        run: databricks bundle validate
+        env:
+          # validate needs a host to resolve the target; no token is used.
+          DATABRICKS_HOST: https://example.cloud.databricks.com
+          DATABRICKS_TOKEN: fake-for-schema-validation

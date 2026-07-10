@@ -1,0 +1,43 @@
+[project]
+name = "dbx_template_agent"
+version = "0.1.0"
+description = "A tool-calling agent with an MLflow eval harness (from databricks-agent-template)"
+requires-python = ">=3.10"
+dependencies = [
+    "mlflow>=3.14.0",
+    "databricks-sdk>=0.38.0",
+    "openai>=1.40",
+    "pandas>=2.0",
+    "pyyaml>=6.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "ruff>=0.6",
+    "pre-commit>=3.7",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/dbx_template_agent"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W", "UP", "B"]
+
+[tool.ruff.lint.per-file-ignores]
+# Databricks notebook source files: imports live in the cell that needs them
+# (each COMMAND is a cell), which is correct notebook style but trips module-
+# level lint rules.
+"notebooks/*" = ["E402", "E401", "I001"]
