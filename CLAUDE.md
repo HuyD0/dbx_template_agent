@@ -67,7 +67,13 @@ gh run watch                                        # tail a run
 gh run view <id> --log-failed                       # debug a failure
 ```
 
-Repo secrets required (set once): `DATABRICKS_HOST`, `DATABRICKS_TOKEN`
-(service principal token; prefer OIDC federation long-term). The `deploy.yml`
-job uses the `production` GitHub environment — add a required-reviewer rule
-there if you want an approval tap before money is spent.
+Auth is **keyless OIDC federation** — no `DATABRICKS_TOKEN` secret exists.
+`deploy.yml` sets `DATABRICKS_AUTH_TYPE: github-oidc` and `id-token: write`;
+the `github-dbx-template-agent` service principal carries a federation policy
+trusting `repo:HuyD0/dbx_template_agent:environment:production`. One-time
+setup (and disaster recovery) lives in `scripts/setup_github_oidc.sh`, which
+also sets the `DATABRICKS_HOST` / `DATABRICKS_CLIENT_ID` repo **variables**
+(ids, not secrets). The `deploy.yml` job uses the `production` GitHub
+environment — its name is part of the OIDC subject claim, so renaming it
+breaks auth; add a required-reviewer rule there if you want an approval tap
+before money is spent.

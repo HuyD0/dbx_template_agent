@@ -4,11 +4,11 @@
 # auto-triggers from a push or PR. A human clicks "Run workflow" (or CI calls
 # it deliberately as a promotion step).
 #
-# Auth setup (once):
-#   Prefer keyless OIDC federation for your service principal
-#   (https://docs.databricks.com/dev-tools/auth/oauth-federation.html).
-#   Short of that, store a DATABRICKS_HOST + DATABRICKS_TOKEN as repo secrets —
-#   never commit credentials.
+# Auth is KEYLESS (OIDC workload identity federation): GitHub mints a
+# short-lived id token per run (`id-token: write`), and a federation policy on
+# the `github-dbx-template-agent` service principal trusts it for this repo's
+# `production` environment. No DATABRICKS_TOKEN secret exists to rotate or
+# leak. One-time setup: scripts/setup_github_oidc.sh.
 name: deploy
 
 on:
@@ -23,10 +23,18 @@ concurrency:
   group: deploy
   cancel-in-progress: false
 
+permissions:
+  id-token: write # mint the GitHub OIDC token the federation policy trusts
+  contents: read
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment: production
+    environment: production # must match the federation policy's subject claim
+    env:
+      DATABRICKS_AUTH_TYPE: github-oidc
+      DATABRICKS_HOST: ${{ vars.DATABRICKS_HOST }}
+      DATABRICKS_CLIENT_ID: ${{ vars.DATABRICKS_CLIENT_ID }}
     steps:
       - uses: actions/checkout@v4
 
@@ -34,9 +42,6 @@ jobs:
 
       - name: Bundle deploy
         run: databricks bundle deploy
-        env:
-          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
-          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
 
       - name: Run eval gate
         if: ${{ inputs.run_eval_gate }}
@@ -45,6 +50,3 @@ jobs:
         run: |
           JOB_KEY=$(databricks bundle summary -o json | jq -r '.resources.jobs | keys[0]')
           databricks bundle run "$JOB_KEY"
-        env:
-          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
-          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
