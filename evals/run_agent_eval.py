@@ -20,8 +20,29 @@ import sys
 from pathlib import Path
 
 # Make src/ importable when run as a plain script or a spark_python_task
-# (bundle-deployed files keep this repo layout in the workspace).
-ROOT = Path(__file__).resolve().parents[1]
+# (bundle-deployed files keep this repo layout in the workspace). A
+# spark_python_task exec()s this file, so `__file__` may be undefined; fall
+# back to argv[0], then to the cwd, and locate the repo root by finding the
+# ancestor that actually contains src/.
+def _repo_root() -> Path:
+    candidates = []
+    try:
+        candidates.append(Path(__file__).resolve())
+    except NameError:
+        pass
+    if sys.argv and sys.argv[0]:
+        candidates.append(Path(sys.argv[0]).resolve())
+    for start in candidates:
+        for parent in start.parents:
+            if (parent / "src").is_dir():
+                return parent
+    for parent in [Path.cwd(), *Path.cwd().parents]:
+        if (parent / "src").is_dir():
+            return parent
+    return Path.cwd()
+
+
+ROOT = _repo_root()
 sys.path.insert(0, str(ROOT / "src"))
 
 import mlflow  # noqa: E402
